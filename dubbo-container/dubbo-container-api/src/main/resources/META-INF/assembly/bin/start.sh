@@ -5,16 +5,11 @@ cd ..
 DEPLOY_DIR=`pwd`
 CONF_DIR=$DEPLOY_DIR/conf
 
-SERVER_NAME=`sed '/dubbo.application.name/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
-SERVER_PROTOCOL=`sed '/dubbo.protocol.name/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
-SERVER_PORT=`sed '/dubbo.protocol.port/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
-LOGS_FILE=`sed '/dubbo.log4j.file/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
-
 if [ -z "$SERVER_NAME" ]; then
     SERVER_NAME=`hostname`
 fi
 
-PIDS=`ps -f | grep java | grep "$CONF_DIR" |awk '{print $2}'`
+PIDS=`ps -ef | grep java | grep "$CONF_DIR" |awk '{print $2}'`
 if [ -n "$PIDS" ]; then
     echo "ERROR: The $SERVER_NAME already started!"
     echo "PID: $PIDS"
@@ -40,8 +35,7 @@ if [ ! -d $LOGS_DIR ]; then
 fi
 STDOUT_FILE=$LOGS_DIR/stdout.log
 
-LIB_DIR=$DEPLOY_DIR/lib
-LIB_JARS=`ls $LIB_DIR|grep .jar|awk '{print "'$LIB_DIR'/"$0}'|tr "\n" ":"`
+LIB_JARS=$DEPLOY_DIR/lib/*
 
 JAVA_OPTS=" -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true "
 JAVA_DEBUG_OPTS=""
@@ -74,7 +68,7 @@ while [ $COUNT -lt 1 ]; do
             COUNT=`netstat -an | grep $SERVER_PORT | wc -l`
         fi
     else
-    	COUNT=`ps -f | grep java | grep "$DEPLOY_DIR" | awk '{print $2}' | wc -l`
+    	COUNT=`ps -ef | grep java | grep "$DEPLOY_DIR" | awk '{print $2}' | wc -l`
     fi
     if [ $COUNT -gt 0 ]; then
         break
@@ -82,6 +76,6 @@ while [ $COUNT -lt 1 ]; do
 done
 
 echo "OK!"
-PIDS=`ps -f | grep java | grep "$DEPLOY_DIR" | awk '{print $2}'`
+PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | awk '{print $2}'`
 echo "PID: $PIDS"
 echo "STDOUT: $STDOUT_FILE"
